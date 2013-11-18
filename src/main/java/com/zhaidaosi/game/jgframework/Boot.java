@@ -23,6 +23,7 @@ import com.zhaidaosi.game.jgframework.model.action.ActionManager;
 import com.zhaidaosi.game.jgframework.model.area.AreaManager;
 import com.zhaidaosi.game.jgframework.model.entity.BasePlayerFactory;
 import com.zhaidaosi.game.jgframework.model.entity.IBasePlayerFactory;
+import com.zhaidaosi.game.jgframework.session.SessionManager;
 
 public class Boot {
 	
@@ -44,6 +45,7 @@ public class Boot {
 	private static long serviceSyncPeriod = 60000;
 	private static int serviceThreadCount = 0;
 	private static int serviceHeartbeatTime = 60;
+	private static int serviceMaxLoginUser = 0;
 	private static ArrayList<String> serviceIps = new ArrayList<String>();
 	private static int authPort = 18080;
 	private static int authThreadCount = 0;
@@ -65,6 +67,10 @@ public class Boot {
 	
 	private static boolean init = false;
 
+	/**
+	 * 初始化参数
+	 * @return
+	 */
 	private static boolean init(){
 		if(init){
 			return init;
@@ -120,6 +126,9 @@ public class Boot {
 				}
 				if(!BaseString.isEmpty(pps.getProperty("service.heartbeatTime"))){
 					serviceHeartbeatTime = Integer.valueOf(pps.getProperty("service.heartbeatTime"));
+				}
+				if(!BaseString.isEmpty(pps.getProperty("service.maxLoginUser"))){
+					serviceHeartbeatTime = Integer.valueOf(pps.getProperty("service.maxLoginUser"));
 				}
 			}
 			
@@ -196,52 +205,100 @@ public class Boot {
 		return init;
 	}
 	
-	public static void setActionPackage(String actionPackage) {
-		Boot.actionPackage = actionPackage;
-	}
-
-	public static void setAreaPackage(String areaPackage) {
-		Boot.areaPackage = areaPackage;
-	}
-	
-	public static IBasePlayerFactory getPlayerFactory(){
-		return playerFactory;
-	}
-	
-	public static void setPlayerFactory(IBasePlayerFactory playerFactory){
-		Boot.playerFactory = playerFactory;
-	}
-	
-	public static String getMemcacheKeyPrefix() {
-		return memcacheKeyPrefix;
-	}
-
-	public static ServiceConnector getServiceConnector(){
-		return serviceConnector;
-	}
-	
-	public static AuthConnector getAuthConnector(){
-		return authConnector;
-	}
-	
+	/**
+	 * 设置允许ip段
+	 * @param ips
+	 */
 	private static void setManagerAllowIps(String[] ips){
 		for (int i = 0; i < ips.length; i++) {
 			managerAllowIps.add(BaseIp.stringToIp(ips[i]));
 		}
 	}
 	
+	/**
+	 * 设置扫描action的包路径，例如：com.zhaidaosi.game.server.model.action
+	 * @param actionPackage
+	 */
+	public static void setActionPackage(String actionPackage) {
+		Boot.actionPackage = actionPackage;
+	}
+
+	/**
+	 * 设置扫描area的包路径，例如：com.zhaidaosi.game.server.model.area
+	 * @param areaPackage
+	 */
+	public static void setAreaPackage(String areaPackage) {
+		Boot.areaPackage = areaPackage;
+	}
+	
+	/**
+	 * 获取player的工厂，默认是BasePlayerFactory
+	 * @return
+	 */
+	public static IBasePlayerFactory getPlayerFactory(){
+		return playerFactory;
+	}
+	
+	/**
+	 * 设置player的工厂，默认是BasePlayerFactory
+	 * @param playerFactory
+	 */
+	public static void setPlayerFactory(IBasePlayerFactory playerFactory){
+		Boot.playerFactory = playerFactory;
+	}
+	
+	/**
+	 * 设置mc的前缀
+	 * @return
+	 */
+	public static String getMemcacheKeyPrefix() {
+		return memcacheKeyPrefix;
+	}
+
+	/**
+	 * 获取service的连接对象
+	 * @return
+	 */
+	public static ServiceConnector getServiceConnector(){
+		return serviceConnector;
+	}
+	
+	/**
+	 * 获取auth的连接对象
+	 * @return
+	 */
+	public static AuthConnector getAuthConnector(){
+		return authConnector;
+	}
+	
+	/**
+	 * 获取manager服务端口
+	 * @return
+	 */
 	public static int getManagerPort() {
 		return managerPort;
 	}
 
+	/**
+	 * 获取manager允许访问的ip段
+	 * @return
+	 */
 	public static ArrayList<Long[]> getManagerAllowIps() {
 		return managerAllowIps;
 	}
 
+	/**
+	 * 获取manager的登录用户
+	 * @return
+	 */
 	public static String getManagerUser() {
 		return managerUser;
 	}
 
+	/**
+	 * 获取manager的用户密码
+	 * @return
+	 */
 	public static String getManagerPassword() {
 		return managerPassword;
 	}
@@ -408,6 +465,12 @@ public class Boot {
 				ActionManager.initAction(actionPackage);
 				//加载区域
 				AreaManager.initArea(areaPackage);
+				
+				if(serviceMaxLoginUser > 0){
+					SessionManager.setMaxUser(serviceMaxLoginUser);
+				}else{
+					serviceMaxLoginUser = 0;
+				}
 				
 				if(serviceConnector == null){
 					serviceConnector = new ServiceConnector(servicePort, serviceSyncPeriod, serviceMode);
