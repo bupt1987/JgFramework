@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+			http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+			http://www.springframework.org/schema/tx 
+         	http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+          	http://www.springframework.org/schema/context 
+          	http://www.springframework.org/schema/context/spring-context-3.1.xsd 
+          	http://www.springframework.org/schema/aop 
+          	http://www.springframework.org/schema/aop/spring-aop-3.1.xsd">
+          	
+    <!-- 注解 -->
+	<context:annotation-config/>
+	<!-- 扫描包 -->
+	<context:component-scan base-package="com.zhaidaosi.game.server.sdm"/>
+	<!-- 代理 -->
+	<aop:aspectj-autoproxy/>
+	
+	<context:property-placeholder location="classpath*:jdbc.properties" />
+
+	<!-- bonecp连接池配置 -->
+	<bean id="parentDataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close"/>
+
+
+	<!-- jgframework 主数据源-->  
+    <bean id="jgframeworkMasterDataSource" parent="parentDataSource">
+        <property name="driverClass" value="${jgframework.master.jdbc.driverClassName}" />  
+        <property name="jdbcUrl" value="${jgframework.master.jdbc.url}" />  
+        <property name="username" value="${jgframework.master.jdbc.username}" />  
+        <property name="password" value="${jgframework.master.jdbc.password}" />
+        <property name="partitionCount" value="${jgframework.master.jdbc.partitionCount}"/>
+		<property name="maxConnectionsPerPartition" value="${jgframework.master.jdbc.maxConnectionsPerPartition}"/>
+		<property name="minConnectionsPerPartition" value="${jgframework.master.jdbc.minConnectionsPerPartition}"/>
+		<property name="poolName" value="jgframework-master-pool"/>
+		<property name="lazyInit" value="true"/>
+    </bean>
+    <!-- jgframework 从数据源-->  
+    <bean id="jgframeworkSlaveDataSource" parent="parentDataSource">  
+        <property name="driverClass" value="${jgframework.slave.jdbc.driverClassName}" />  
+        <property name="jdbcUrl" value="${jgframework.slave.jdbc.url}" />  
+        <property name="username" value="${jgframework.slave.jdbc.username}" />  
+        <property name="password" value="${jgframework.slave.jdbc.password}"/>
+        <property name="partitionCount" value="${jgframework.slave.jdbc.partitionCount}"/>
+		<property name="maxConnectionsPerPartition" value="${jgframework.slave.jdbc.maxConnectionsPerPartition}"/>
+		<property name="minConnectionsPerPartition" value="${jgframework.slave.jdbc.minConnectionsPerPartition}"/> 
+		<property name="poolName" value="jgframework-slave-pool"/>
+    </bean>	
+    
+    <!-- cronweb 主数据源-->  
+    <bean id="cronwebMasterDataSource" parent="parentDataSource">
+        <property name="driverClass" value="${cronweb.master.jdbc.driverClassName}" />  
+        <property name="jdbcUrl" value="${cronweb.master.jdbc.url}" />  
+        <property name="username" value="${cronweb.master.jdbc.username}" />  
+        <property name="password" value="${cronweb.master.jdbc.password}" />
+        <property name="partitionCount" value="${cronweb.master.jdbc.partitionCount}"/>
+		<property name="maxConnectionsPerPartition" value="${cronweb.master.jdbc.maxConnectionsPerPartition}"/>
+		<property name="minConnectionsPerPartition" value="${cronweb.master.jdbc.minConnectionsPerPartition}"/>
+		<property name="poolName" value="cronweb-master-pool"/>
+		<property name="lazyInit" value="true"/>
+    </bean> 
+    <!-- cronweb 从数据源-->  
+    <bean id="cronwebSlaveDataSource" parent="parentDataSource">  
+        <property name="driverClass" value="${cronweb.slave.jdbc.driverClassName}" />  
+        <property name="jdbcUrl" value="${cronweb.slave.jdbc.url}" />  
+        <property name="username" value="${cronweb.slave.jdbc.username}" />  
+        <property name="password" value="${cronweb.slave.jdbc.password}"/>
+        <property name="partitionCount" value="${cronweb.slave.jdbc.partitionCount}"/>
+		<property name="maxConnectionsPerPartition" value="${cronweb.slave.jdbc.maxConnectionsPerPartition}"/>
+		<property name="minConnectionsPerPartition" value="${cronweb.slave.jdbc.minConnectionsPerPartition}"/> 
+		<property name="poolName" value="cronweb-slave-pool"/>
+    </bean>
+
+	<bean id="dataSource" class="com.zhaidaosi.game.jgframework.common.spring.DynamicDataSource">  
+        <property name="targetDataSources">  
+            <map key-type="java.lang.String">  
+                <entry key="cronweb-master" value-ref="cronwebMasterDataSource" />
+                <entry key="cronweb-slave" value-ref="cronwebSlaveDataSource" /> 
+                <entry key="jgframework-master" value-ref="jgframeworkMasterDataSource" />
+                <entry key="jgframework-slave" value-ref="jgframeworkSlaveDataSource" /> 
+            </map>  
+        </property>  
+        <property name="defaultTargetDataSource" ref="jgframeworkSlaveDataSource" />  
+        <property name="defaultDatabase" value="jgframework"/>
+    </bean> 
+    
+	
+	<!-- 自己定义的扫描模型类 -->
+	<bean id="sessionFactory" class="com.zhaidaosi.game.jgframework.common.spring.AnnotationSessionFactoryBeanEx">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLInnoDBDialect</prop>
+				<prop key="hibernate.show_sql">false</prop>
+    			<prop key="hibernate.hbm2ddl.auto">none</prop><!-- update -->
+			</props>
+		</property>
+		<property name="annotatedClassesLocations">  
+            <list>  
+                <value>classpath*:com/zhaidaosi/game/server/sdm/model/*.class</value>  
+            </list>  
+        </property>
+	</bean>
+
+	<bean id="hibernateTemplate" class="org.springframework.orm.hibernate3.HibernateTemplate">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+
+	<!-- 定义事务管理器 -->
+	<bean id="txManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<!-- 加载事务驱动 -->
+	<tx:annotation-driven transaction-manager="txManager"/>
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="total*" read-only="true" propagation="SUPPORTS"/>
+			<tx:method name="find*" read-only="true" propagation="SUPPORTS"/>
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 切换数据库 -->
+	<bean id="dataSourceAdvice" class="com.zhaidaosi.game.jgframework.common.spring.DataSourceAdvice" />
+	<aop:config>
+		<aop:pointcut id="bussinessService" expression="execution(public * com.zhaidaosi.game.server.sdm.service..*.*(..))" />
+		<aop:advisor pointcut-ref="bussinessService" advice-ref="dataSourceAdvice" />
+		<aop:advisor pointcut-ref="bussinessService" advice-ref="txAdvice" />
+	</aop:config>
+	
+	<aop:config>
+		<aop:pointcut id="frameworkbussinessService" expression="execution(public * com.zhaidaosi.game.jgframework.common.sdm.BaseService.*(..))" />
+		<aop:advisor pointcut-ref="frameworkbussinessService" advice-ref="dataSourceAdvice" />
+		<aop:advisor pointcut-ref="frameworkbussinessService" advice-ref="txAdvice" />
+	</aop:config>
+	
+	<!-- service beans -->
+	<!-- scope="prototype"  -->
+	<bean id="CronModelService" class="com.zhaidaosi.game.server.sdm.service.CronModelService"/>
+	<bean id="UserService" class="com.zhaidaosi.game.server.sdm.service.UserService"/>
+	
+</beans>
