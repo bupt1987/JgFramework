@@ -22,6 +22,19 @@ JgFramework
 14、基本游戏模块的抽象
 ~~~
 
+性能测试
+======
+##### *测试信息*
+~~~
+cpu : AMD A10
+内存 : 8G
+测试脚本 : https://github.com/bupt1987/JgWeb/blob/master/src/test/java/client/TestWebSocket.java，自压测试
+~~~
+##### *测试结果*
+~~~
+在100个登录用户，每个用户在登录完成，再init操作之后，每个用户发送100000个请求，得到每秒处理请求数在3.5W左右。
+~~~
+
 欢迎加入
 ======
 如果对该系统有兴趣可以发邮件至 bupt1987@gmail.com 一起探讨，欢迎加入
