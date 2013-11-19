@@ -6,5 +6,3 @@
 *.ear
 /.svn
 /target
-
-target/classes/META-INF/maven/JgFramework/JgFramework/pom.properties
