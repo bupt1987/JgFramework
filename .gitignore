@@ -7,3 +7,5 @@
 /.svn
 /target
 *.svn-base
+
+.myeclipse/.svn/all-wcprops
