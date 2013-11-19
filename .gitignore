@@ -6,3 +6,4 @@
 *.ear
 /.svn
 /target
+*.svn-base
