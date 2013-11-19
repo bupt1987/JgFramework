@@ -4,8 +4,6 @@
 *.jar
 *.war
 *.ear
-/.svn
+.svn
 /target
 *.svn-base
-
-.myeclipse/.svn/all-wcprops
