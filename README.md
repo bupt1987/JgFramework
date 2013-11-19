@@ -28,7 +28,8 @@ JgFramework
 ~~~
 cpu : AMD A10
 内存 : 8G
-测试脚本 : https://github.com/bupt1987/JgWeb/blob/master/src/test/java/client/TestWebSocket.java，自压测试
+测试脚本 : https://github.com/bupt1987/JgWeb/blob/master/src/test/java/client/TestWebSocket.java
+测试方式 : 自压
 ~~~
 ##### *测试结果*
 ~~~
