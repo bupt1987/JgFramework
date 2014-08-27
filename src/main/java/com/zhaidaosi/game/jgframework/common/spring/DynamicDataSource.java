@@ -4,18 +4,18 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 public class DynamicDataSource extends AbstractRoutingDataSource {
 
-	private String defaultDatabase;
-	
-	@Override
-	protected Object determineCurrentLookupKey() {
-		return DataSourceSwitcher.getDataSource();
-	}
+    private String defaultDatabase;
 
-	public void setDefaultDatabase(String defaultDatabase) {
-		this.defaultDatabase = defaultDatabase;
-		DataSourceSwitcher.setDefaultDatabase(this.defaultDatabase);
-	}
-	
+    @Override
+    protected Object determineCurrentLookupKey() {
+        return DataSourceSwitcher.getDataSource();
+    }
+
+    public void setDefaultDatabase(String defaultDatabase) {
+        this.defaultDatabase = defaultDatabase;
+        DataSourceSwitcher.setDefaultDatabase(this.defaultDatabase);
+    }
+
 }
 
 

@@ -1,6 +1,6 @@
 package com.zhaidaosi.game.jgframework.common.excption;
 
 public interface IBaseException {
-	
-	public int getCode();
+
+    public int getCode();
 }

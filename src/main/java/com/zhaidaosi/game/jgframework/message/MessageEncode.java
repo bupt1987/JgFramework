@@ -6,13 +6,13 @@ import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 
 public class MessageEncode extends OneToOneEncoder {
 
-	@Override
-	protected Object encode(ChannelHandlerContext ctx, Channel channel,
-			Object msg) {
-		if (msg != null && msg instanceof IBaseMessage) {
-			msg = ((IBaseMessage) msg).toString() + "\r\n";
-		}
-		return msg;
-	}
+    @Override
+    protected Object encode(ChannelHandlerContext ctx, Channel channel,
+                            Object msg) {
+        if (msg != null && msg instanceof IBaseMessage) {
+            msg = ((IBaseMessage) msg).toString() + "\r\n";
+        }
+        return msg;
+    }
 
 }

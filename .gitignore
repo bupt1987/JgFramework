@@ -8,3 +8,5 @@
 /target
 *.svn-base
 .myeclipse/
+.idea/
+JgFramework.iml
