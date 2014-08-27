@@ -7,3 +7,4 @@
 .svn
 /target
 *.svn-base
+.myeclipse/
