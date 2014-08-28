@@ -28,12 +28,13 @@ JgFramework
 ~~~
 cpu : AMD A10
 内存 : 8G
-测试脚本 : https://github.com/bupt1987/JgWeb/blob/master/src/test/java/client/TestWebSocket.java
+测试脚本 : src/test/java/client/TestWebSocket.java
 测试方式 : 自压
 ~~~
 ##### *测试结果*
 ~~~
-在100个登录用户，每个用户在登录完成，再init操作之后，每个用户发送100000个请求，得到每秒处理请求数在3.5W左右。
+在100个登录用户，每个用户在登录完成，再init操作之后，每个用户发送100000个请求，   
+得到每秒处理请求数在3.5W左右。
 ~~~
 
 欢迎加入
