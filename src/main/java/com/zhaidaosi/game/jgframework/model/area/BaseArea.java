@@ -24,9 +24,9 @@ public abstract class BaseArea implements IBaseArea {
     protected String name;
     protected boolean open = true;
     protected IBaseMap map;
-    protected Map<Integer, IBaseEntity> entitys = new HashMap<Integer, IBaseEntity>();
-    protected Map<Integer, IBaseEntity> npcs = new HashMap<Integer, IBaseEntity>();
-    protected Map<Integer, IBaseCharacter> players = new HashMap<Integer, IBaseCharacter>();
+    protected Map<Integer, IBaseEntity> entitys = new HashMap<>();
+    protected Map<Integer, IBaseEntity> npcs = new HashMap<>();
+    protected Map<Integer, IBaseCharacter> players = new HashMap<>();
     protected ChannelGroup channelGroup;
     protected Object lock = new Object();
     protected BasePosition entrancePosition = new BasePosition(this);
