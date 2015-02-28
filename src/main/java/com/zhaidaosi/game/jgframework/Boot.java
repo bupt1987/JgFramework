@@ -126,7 +126,7 @@ public class Boot {
                     serviceHeartbeatTime = Integer.valueOf(pps.getProperty("service.heartbeatTime"));
                 }
                 if (!BaseString.isEmpty(pps.getProperty("service.maxLoginUser"))) {
-                    serviceHeartbeatTime = Integer.valueOf(pps.getProperty("service.maxLoginUser"));
+                    serviceMaxLoginUser = Integer.valueOf(pps.getProperty("service.maxLoginUser"));
                 }
             }
 
