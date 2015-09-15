@@ -14,7 +14,7 @@ public class InMessage implements IBaseMessage {
     /**
      * 参数
      */
-    private HashMap<String, Object> p = new HashMap<String, Object>();
+    private HashMap<String, Object> p = new HashMap<>();
 
     public InMessage() {
     }

@@ -2,10 +2,10 @@ package com.zhaidaosi.game.jgframework.message;
 
 public interface IBaseMessage {
 
-    public String toString();
+    String toString();
 
-    public String getH();
+    String getH();
 
-    public void setH(String h);
+    void setH(String h);
 
 }

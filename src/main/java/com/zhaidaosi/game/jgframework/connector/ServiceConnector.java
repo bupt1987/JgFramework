@@ -24,7 +24,6 @@ import org.jboss.netty.util.internal.DeadLockProofWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.util.Timer;
@@ -47,7 +46,7 @@ public class ServiceConnector implements IBaseConnector {
     private Timer timer;
     private final long period;
     private final String mode;
-    private Object lock = new Object();
+    private final Object lock = new Object();
     private int connectCount = 0;
     private long startTime;
     public static final String MODE_SOCKET = "socket";
@@ -80,12 +79,16 @@ public class ServiceConnector implements IBaseConnector {
         } else {
             bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
         }
-        if (mode.equals(MODE_SOCKET)) {
-            bootstrap.setPipelineFactory(new SocketServerPipelineFactory());
-        } else if (mode.equals(MODE_WBSOCKET)) {
-            bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory());
-        } else {
-            log.error("Service 运行模式设置错误,必须为" + MODE_SOCKET + "或" + MODE_WBSOCKET);
+        switch (mode) {
+            case MODE_SOCKET:
+                bootstrap.setPipelineFactory(new SocketServerPipelineFactory());
+                break;
+            case MODE_WBSOCKET:
+                bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory());
+                break;
+            default:
+                log.error("Service 运行模式设置错误,必须为" + MODE_SOCKET + "或" + MODE_WBSOCKET);
+                break;
         }
 
         SessionManager.init();
@@ -164,14 +167,10 @@ public class ServiceConnector implements IBaseConnector {
             String errorMsg = t.getMessage();
             if (!(t instanceof ClosedChannelException)) {
                 Channel ch = ctx.getChannel();
-                if (t instanceof IOException && "远程主机强迫关闭了一个现有的连接。".equals(errorMsg)) {
-                    // 过滤客户端强制关闭连接造成的异常
-                } else if (t instanceof MessageException) {
+                if (t instanceof MessageException) {
                     log.error(errorMsg);
                 } else if (t instanceof ReadTimeoutException) {
                     log.error("强制关闭超时连接  => " + ch.getRemoteAddress());
-                } else if (t instanceof IllegalArgumentException && "empty text".equals(errorMsg)) {
-                    // 过滤不是使用websocket连接时造成的异常
                 } else {
                     log.error(errorMsg, t);
                 }
@@ -259,12 +258,12 @@ public class ServiceConnector implements IBaseConnector {
 
         private void handleHttpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
             if (req.getMethod() != GET) {
-                sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
+                sendHttpResponse(ctx, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
                 return;
             }
             if (!WEBSOCKET_PATH.equals(req.getUri()) || !"websocket".equals(req.getHeader(UPGRADE))) {
                 HttpResponse res = new DefaultHttpResponse(HTTP_1_1, FORBIDDEN);
-                sendHttpResponse(ctx, req, res);
+                sendHttpResponse(ctx, res);
                 return;
             }
             // Handshake
@@ -277,7 +276,7 @@ public class ServiceConnector implements IBaseConnector {
             }
         }
 
-        private void sendHttpResponse(ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
+        private void sendHttpResponse(ChannelHandlerContext ctx, HttpResponse res) {
             if (res.getStatus().getCode() != 200) {
                 res.setContent(ChannelBuffers.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8));
                 setContentLength(res, res.getContent().readableBytes());

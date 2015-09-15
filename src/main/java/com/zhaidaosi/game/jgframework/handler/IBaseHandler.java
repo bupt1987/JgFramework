@@ -6,10 +6,10 @@ import org.jboss.netty.channel.Channel;
 
 public interface IBaseHandler {
 
-    public IBaseMessage run(InMessage im, Channel ch) throws Exception;
+    IBaseMessage run(InMessage im, Channel ch) throws Exception;
 
-    public String getHandlerName();
+    String getHandlerName();
 
-    public void setHandlerName(String handlerName);
+    void setHandlerName(String handlerName);
 
 }

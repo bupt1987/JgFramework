@@ -2,8 +2,8 @@ package com.zhaidaosi.game.jgframework.connector;
 
 public interface IBaseConnector {
 
-    public void start();
+    void start();
 
-    public void stop();
+    void stop();
 
 }

@@ -127,7 +127,7 @@ public class ManagerConnector implements IBaseConnector {
         }
 
         private String handler(String request) {
-            String response = "";
+            String response;
             String[] requestArr = request.split(" ");
             AuthConnector authConnector = Boot.getAuthConnector();
             ServiceConnector serviceConnector = Boot.getServiceConnector();
@@ -238,7 +238,7 @@ public class ManagerConnector implements IBaseConnector {
         }
 
         private String login(String request, Integer step, Integer cid) {
-            String response = "";
+            String response;
             if (step == 1) {
                 String user = Boot.getManagerUser();
                 if (!request.equals(user)) {
@@ -262,7 +262,7 @@ public class ManagerConnector implements IBaseConnector {
 
     static class ManagerService {
 
-        private static ConcurrentHashMap<Integer, Integer> authStep = new ConcurrentHashMap<Integer, Integer>();
+        private static ConcurrentHashMap<Integer, Integer> authStep = new ConcurrentHashMap<>();
 
         private static int pId = 0;
 
@@ -288,7 +288,6 @@ public class ManagerConnector implements IBaseConnector {
         static void goNextSetp(Integer cid) {
             Integer setp = authStep.get(cid);
             if (setp == null) {
-                setp = 1;
                 authStep.put(cid, 1);
             } else {
                 authStep.put(cid, ++setp);
