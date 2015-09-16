@@ -5,15 +5,15 @@ import com.zhaidaosi.game.jgframework.common.BaseDate;
 import com.zhaidaosi.game.jgframework.common.BaseIp;
 import com.zhaidaosi.game.jgframework.message.OutMessage;
 import com.zhaidaosi.game.jgframework.session.SessionManager;
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.*;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
-import org.jboss.netty.handler.codec.frame.Delimiters;
-import org.jboss.netty.handler.codec.string.StringDecoder;
-import org.jboss.netty.handler.codec.string.StringEncoder;
-import org.jboss.netty.util.CharsetUtil;
-import org.jboss.netty.util.internal.DeadLockProofWorker;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,17 +22,16 @@ import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 
-import static org.jboss.netty.channel.Channels.pipeline;
 
 public class ManagerConnector implements IBaseConnector {
 
     private static final Logger log = LoggerFactory.getLogger(ManagerConnector.class);
     private final InetSocketAddress localAddress;
     private ServerBootstrap bootstrap;
+    private NioEventLoopGroup bossGroup;
+    private NioEventLoopGroup workerGroup;
 
     public ManagerConnector(int port) {
         this.localAddress = new InetSocketAddress(port);
@@ -43,10 +42,20 @@ public class ManagerConnector implements IBaseConnector {
         if (bootstrap != null) {
             return;
         }
-        bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool(), 1));
-        bootstrap.setPipelineFactory(new TelnetServerPipelineFactory());
-        bootstrap.bind(localAddress);
-        log.info("Manager Service is running! port : " + localAddress.getPort());
+
+        bootstrap = new ServerBootstrap();
+        bossGroup = new NioEventLoopGroup(1);
+        workerGroup = new NioEventLoopGroup(1);
+
+        try{
+            bootstrap.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new TelnetServerInitializer())
+                    .bind(localAddress);
+            log.info("Manager Service is running! port : " + localAddress.getPort());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 
     @Override
@@ -54,65 +63,67 @@ public class ManagerConnector implements IBaseConnector {
         if (bootstrap == null) {
             return;
         }
-        bootstrap.releaseExternalResources();
+        workerGroup.shutdownGracefully();
+        bossGroup.shutdownGracefully();
         bootstrap = null;
-        DeadLockProofWorker.PARENT.remove();
     }
 
 
-    class TelnetServerPipelineFactory implements ChannelPipelineFactory {
 
-        public ChannelPipeline getPipeline() throws Exception {
-            ChannelPipeline pipeline = pipeline();
-            pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-            pipeline.addLast("StringEncode", new StringEncoder(CharsetUtil.UTF_8));
-            pipeline.addLast("StringDecode", new StringDecoder(CharsetUtil.UTF_8));
-            pipeline.addLast("Handler", new MyChannelHandler());
-            return pipeline;
+    class TelnetServerInitializer extends ChannelInitializer<SocketChannel> {
+
+        @Override
+        public void initChannel(SocketChannel ch) throws Exception {
+            ChannelPipeline pipeline = ch.pipeline();
+            pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+            pipeline.addLast(new StringDecoder());
+            pipeline.addLast(new StringEncoder());
+            pipeline.addLast(new ManagerHandler());
         }
+
     }
 
 
-    class MyChannelHandler extends SimpleChannelHandler {
+    class ManagerHandler extends ChannelInboundHandlerAdapter {
 
         private final String nextLine = "\r\n";
         private boolean close = false;
 
         @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-            log.error(e.getCause().getMessage(), e.getCause());
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable t) throws Exception {
+            log.error(t.getMessage(), t);
         }
 
         @Override
-        public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-            Channel ch = e.getChannel();
-            String ip = ch.getRemoteAddress().toString();
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            Channel ch = ctx.channel();
+            String ip = ch.remoteAddress().toString();
             String[] ipArr = ip.split(":");
             String realIp = ipArr[0].substring(ipArr[0].indexOf("/") + 1);
             if (!ManagerService.checkIp(realIp)) {
                 ch.close();
             } else {
-                ctx.getChannel().write("Please input user name:" + nextLine);
-                ManagerService.goNextSetp(ch.getId());
+                ch.write("Please input user name:" + nextLine);
+                ch.flush();
+                ManagerService.goNextSetp(ch.hashCode());
                 log.info("ManagerConnector connected " + ip);
             }
         }
 
         @Override
-        public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-            Channel ch = e.getChannel();
-            ManagerService.clear(ch.getId());
-            log.info("ManagerConnector closed " + ch.getRemoteAddress());
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            Channel ch = ctx.channel();
+            ManagerService.clear(ch.hashCode());
+            log.info("ManagerConnector closed " + ch.remoteAddress());
         }
 
         @Override
-        public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-            Channel ch = e.getChannel();
-            String request = (String) e.getMessage();
-            request = request.toLowerCase();
-            String response = "Please type something.";
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            Channel ch = ctx.channel();
+            String request = msg.toString().toLowerCase();
+            String response = "Please i something.";
             if (request.length() > 0) {
-                Integer cid = ch.getId();
+                Integer cid = ch.hashCode();
                 Integer step = ManagerService.getStep(cid);
                 if (step == 1 || step == 2) {
                     response = login(request, step, cid);
@@ -120,7 +131,7 @@ public class ManagerConnector implements IBaseConnector {
                     response = handler(request);
                 }
             }
-            ChannelFuture future = ctx.getChannel().write(response + nextLine);
+            ChannelFuture future = ch.write(response + nextLine);
             if (close) {
                 future.addListener(ChannelFutureListener.CLOSE);
             }
@@ -226,9 +237,14 @@ public class ManagerConnector implements IBaseConnector {
             return response;
         }
 
+        @Override
+        public void channelReadComplete(ChannelHandlerContext ctx) {
+            ctx.flush();
+        }
+
         private String sendMsg(String msg) {
             Map<Integer, Channel> channels = SessionManager.getChannels();
-            for (Entry<Integer, Channel> entry : channels.entrySet()) {
+            for (Map.Entry<Integer, Channel> entry : channels.entrySet()) {
                 Channel ch = entry.getValue();
                 if (ch.isWritable()) {
                     ch.write(OutMessage.showSucc(msg));
@@ -253,7 +269,7 @@ public class ManagerConnector implements IBaseConnector {
                     response = "Password is error, please input again!";
                 } else {
                     ManagerService.goNextSetp(cid);
-                    response = "Login success!";
+                    response = "Login success!" + nextLine;
                 }
             }
             return response;
@@ -286,11 +302,11 @@ public class ManagerConnector implements IBaseConnector {
         }
 
         static void goNextSetp(Integer cid) {
-            Integer setp = authStep.get(cid);
-            if (setp == null) {
+            Integer step = authStep.get(cid);
+            if (step == null) {
                 authStep.put(cid, 1);
             } else {
-                authStep.put(cid, ++setp);
+                authStep.put(cid, ++step);
             }
         }
 

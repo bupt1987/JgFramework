@@ -1,15 +1,12 @@
 package com.zhaidaosi.game.jgframework.common.encrpt;
 
 import com.zhaidaosi.game.jgframework.Boot;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 import javax.crypto.Cipher;
-import java.io.IOException;
+import javax.xml.bind.DatatypeConverter;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
@@ -39,9 +36,8 @@ public class BaseRsa {
         try {
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            return new BASE64Encoder().encode(cipher.doFinal(data.getBytes(Boot.getCharset())));
+            return DatatypeConverter.printBase64Binary(cipher.doFinal(data.getBytes(Boot.getCharset())));
         } catch (Exception e) {
-            // e.printStackTrace();
             return null;
         }
     }
@@ -53,9 +49,8 @@ public class BaseRsa {
         try {
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
-            return new String(cipher.doFinal(new BASE64Decoder().decodeBuffer(data)), Boot.getCharset());
+            return new String(cipher.doFinal(DatatypeConverter.parseBase64Binary(data)), Boot.getCharset());
         } catch (Exception e) {
-            // e.printStackTrace();
             return null;
         }
     }
@@ -63,21 +58,20 @@ public class BaseRsa {
     /**
      * 得到公钥
      *
-     * @param key
-     *            密钥字符串（经过base64编码）
+     * @param key 密钥字符串（经过base64编码）
      * @throws Exception
      */
     private static PublicKey getPublicKey(String key) {
         byte[] keyBytes;
         PublicKey publicKey = null;
         try {
-            keyBytes = (new BASE64Decoder()).decodeBuffer(key);
+            keyBytes = DatatypeConverter.parseBase64Binary(key);
 
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             publicKey = keyFactory.generatePublic(keySpec);
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            // e.printStackTrace();
+        } catch (Exception e) {
+            return null;
         }
         return publicKey;
     }
@@ -85,21 +79,20 @@ public class BaseRsa {
     /**
      * 得到私钥
      *
-     * @param key
-     *            密钥字符串（经过base64编码）
+     * @param key 密钥字符串（经过base64编码）
      * @throws Exception
      */
     private static PrivateKey getPrivateKey(String key) {
         byte[] keyBytes;
         PrivateKey privateKey = null;
         try {
-            keyBytes = (new BASE64Decoder()).decodeBuffer(key);
+            keyBytes = DatatypeConverter.parseBase64Binary(key);
 
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             privateKey = keyFactory.generatePrivate(keySpec);
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            // e.printStackTrace();
+        } catch (Exception e) {
+            return null;
         }
         return privateKey;
     }
@@ -111,8 +104,7 @@ public class BaseRsa {
      */
     private static String getKeyString(Key key) throws Exception {
         byte[] keyBytes = key.getEncoded();
-        String s = (new BASE64Encoder()).encode(keyBytes);
-        return s;
+        return DatatypeConverter.printBase64Binary(keyBytes);
     }
 
     public static void main(String[] args) throws Exception {
@@ -123,20 +115,24 @@ public class BaseRsa {
         // 密钥对
         KeyPair keyPair = keyPairGen.generateKeyPair();
         // 公钥
-        PublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+        PublicKey publicKey = keyPair.getPublic();
         // 私钥
-        PrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+        PrivateKey privateKey = keyPair.getPrivate();
+
         String publicKeyString = getKeyString(publicKey);
         System.out.println("public:\n" + publicKeyString);
+
         String privateKeyString = getKeyString(privateKey);
         System.out.println("private:\n" + privateKeyString);
 
-        // BaseRsa.init();
-        // String test = "1231232123_2013-01-01 00:00:00";
-        // String t = BaseRsa.encrypt(test);
-        // System.out.println(t);
-        // String a = BaseRsa.decrypt(t);
-        // System.out.println(a);
+        BaseRsa.init(publicKeyString, privateKeyString);
+        String test = "1231232123_2013-01-01 00:00:00";
+
+        String t = BaseRsa.encrypt(test);
+        System.out.println(t);
+
+        String a = BaseRsa.decrypt(t);
+        System.out.println(a);
     }
 
 }

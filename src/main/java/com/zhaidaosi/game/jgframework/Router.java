@@ -8,7 +8,7 @@ import com.zhaidaosi.game.jgframework.handler.IBaseHandler;
 import com.zhaidaosi.game.jgframework.message.IBaseMessage;
 import com.zhaidaosi.game.jgframework.message.InMessage;
 import com.zhaidaosi.game.jgframework.message.OutMessage;
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ import java.util.Set;
 public class Router {
 
     private static final Logger log = LoggerFactory.getLogger(Router.class);
-    private static HashMap<String, IBaseHandler> handlers = new HashMap<String, IBaseHandler>();
+    private static HashMap<String, IBaseHandler> handlers = new HashMap<>();
     private static final String classSuffix = "Handler";
     public static final String ERROR_HANDLERNAME = "_error_";
     public static final String HEART_HANDLERNAME = "_heart_";
@@ -76,8 +76,6 @@ public class Router {
                         rs.setH(handlerName);
                     }
                 }
-            } catch (Exception e) {
-                throw e;
             } finally {
                 if (BaseRunTimer.isActive()) {
                     long runningTime = System.currentTimeMillis() - startTime;

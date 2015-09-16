@@ -39,7 +39,7 @@ public class Boot {
     private static String actionPackage;
     private static String areaPackage;
     private static int servicePort = 28080;
-    private static String serviceMode = ServiceConnector.MODE_WBSOCKET;
+    private static String serviceMode = ServiceConnector.MODE_WEB_SOCKET;
     private static long serviceSyncPeriod = 60000;
     private static int serviceThreadCount = 0;
     private static int serviceHeartbeatTime = 60;
@@ -391,7 +391,7 @@ public class Boot {
         if (serviceMode.equals(ServiceConnector.MODE_SOCKET)) {
             return ip + ":" + servicePort;
         } else {
-            return "ws://" + ip + ":" + servicePort + ServiceConnector.WEBSOCKET_PATH;
+            return "ws://" + ip + ":" + servicePort + ServiceConnector.WEB_SOCKET_PATH;
         }
     }
 

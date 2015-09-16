@@ -12,7 +12,7 @@ public class ActionManager {
 
     private static final Logger log = LoggerFactory.getLogger(ActionManager.class);
     private static Map<Integer, IBaseAction> actions = new HashMap<Integer, IBaseAction>();
-    private static String classSuffix = "Action";
+    private static final String classSuffix = "Action";
 
     public static void initAction(String packagePath) {
         if (packagePath == null) {

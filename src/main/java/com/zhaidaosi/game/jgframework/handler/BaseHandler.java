@@ -3,7 +3,7 @@ package com.zhaidaosi.game.jgframework.handler;
 import com.zhaidaosi.game.jgframework.message.IBaseMessage;
 import com.zhaidaosi.game.jgframework.message.InMessage;
 import com.zhaidaosi.game.jgframework.message.OutMessage;
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
 
 public abstract class BaseHandler implements IBaseHandler {
 

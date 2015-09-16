@@ -3,74 +3,74 @@ package com.zhaidaosi.game.jgframework.model.entity;
 import com.zhaidaosi.game.jgframework.model.BasePosition;
 import com.zhaidaosi.game.jgframework.model.action.IBaseAction;
 import com.zhaidaosi.game.jgframework.model.area.IBaseArea;
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
 
 import java.util.Map;
 
 public interface IBaseCharacter {
 
-    public int getId();
+    int getId();
 
-    public void setId(int id);
+    void setId(int id);
 
-    public String getRoll();
+    String getRoll();
 
-    public void setRoll(String roll);
+    void setRoll(String roll);
 
-    public BasePosition gPosition();
+    BasePosition gPosition();
 
-    public void sPosition(BasePosition position);
+    void sPosition(BasePosition position);
 
-    public IBaseArea gArea();
+    IBaseArea gArea();
 
-    public String getName();
+    String getName();
 
-    public void setName(String name);
+    void setName(String name);
 
-    public IBaseAction findActionById(int id);
+    IBaseAction findActionById(int id);
 
-    public void addAction(IBaseAction action);
+    void addAction(IBaseAction action);
 
-    public void setActions(Map<Integer, IBaseAction> actions);
+    void setActions(Map<Integer, IBaseAction> actions);
 
-    public Map<Integer, IBaseAction> getActions();
+    Map<Integer, IBaseAction> getActions();
 
-    public void removeAction(int id);
+    void removeAction(int id);
 
-    public Channel gChannel();
+    Channel gChannel();
 
-    public void sChannel(Channel channel);
+    void sChannel(Channel channel);
 
-    public int getLevel();
+    int getLevel();
 
-    public void setLevel(int level);
+    void setLevel(int level);
 
-    public int getExperience();
+    int getExperience();
 
-    public void setExperience(int experience);
+    void setExperience(int experience);
 
-    public int getTotalHp();
+    int getTotalHp();
 
-    public void setTotalHp(int totalHp);
+    void setTotalHp(int totalHp);
 
-    public int getTotalMp();
+    int getTotalMp();
 
-    public void setTotalMp(int totalMp);
+    void setTotalMp(int totalMp);
 
-    public int getHp();
+    int getHp();
 
-    public void setHp(int hp);
+    void setHp(int hp);
 
-    public int getMp();
+    int getMp();
 
-    public void setMp(int mp);
+    void setMp(int mp);
 
-    public void logoutHook();
+    void logoutHook();
 
-    public void loginHook();
+    void loginHook();
 
-    public boolean isInQueue();
+    boolean isInQueue();
 
-    public void setIsInQueue(boolean isInQueue);
+    void setIsInQueue(boolean isInQueue);
 
 }

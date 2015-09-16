@@ -1,10 +1,10 @@
 package com.zhaidaosi.game.jgframework.handler;
 
 import com.zhaidaosi.game.jgframework.message.OutMessage;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.ChannelGroupFuture;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.ChannelGroupFuture;
 
 public class BaseHandlerChannel {
 

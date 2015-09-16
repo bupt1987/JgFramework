@@ -5,52 +5,51 @@ import com.zhaidaosi.game.jgframework.model.entity.BasePlayer;
 import com.zhaidaosi.game.jgframework.model.entity.IBaseCharacter;
 import com.zhaidaosi.game.jgframework.model.entity.IBaseEntity;
 import com.zhaidaosi.game.jgframework.model.map.IBaseMap;
-import org.jboss.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.ChannelGroup;
 
 import java.util.Collection;
 import java.util.Map;
 
 public interface IBaseArea {
 
-    public void init();
+    void init();
 
-    public boolean isOpen();
+    boolean isOpen();
 
-    public void open();
+    void open();
 
-    public void close();
+    void close();
 
-    public int getId();
+    int getId();
 
-    public String getName();
+    String getName();
 
-    public void setName(String name);
+    void setName(String name);
 
-    public IBaseMap getMap();
+    IBaseMap getMap();
 
-    public IBaseEntity getEntity(int id);
+    IBaseEntity getEntity(int id);
 
-    public Map<Integer, IBaseEntity> getEntities();
+    Map<Integer, IBaseEntity> getEntities();
 
-    public void addEntity(IBaseEntity entity);
+    void addEntity(IBaseEntity entity);
 
-    public void removeEntity(int id);
+    void removeEntity(int id);
 
-    public IBaseCharacter getPlayer(int id);
+    IBaseCharacter getPlayer(int id);
 
-    public Collection<IBaseCharacter> getPlayers();
+    Collection<IBaseCharacter> getPlayers();
 
-    public void addPlayer(BasePlayer player);
+    void addPlayer(BasePlayer player);
 
-    public void removePlayer(int id);
+    void removePlayer(int id);
 
-    public IBaseEntity getNpc(int id);
+    IBaseEntity getNpc(int id);
 
-    public void addNpc(BaseNpc npc);
+    void addNpc(BaseNpc npc);
 
-    public void removeNpc(int id);
+    void removeNpc(int id);
 
-    public ChannelGroup getChannelGroup();
-
+    ChannelGroup getChannelGroup();
 
 }

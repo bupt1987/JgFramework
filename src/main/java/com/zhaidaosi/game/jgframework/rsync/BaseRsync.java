@@ -10,10 +10,10 @@ import java.util.concurrent.ConcurrentMap;
 public abstract class BaseRsync implements IBaseRsync {
 
     private boolean isRunning = false;
-    private ConcurrentMap<Integer, IBaseModel> mapOne = new ConcurrentHashMap<Integer, IBaseModel>();
-    private ConcurrentMap<Integer, IBaseModel> mapTwo = new ConcurrentHashMap<Integer, IBaseModel>();
-    private ConcurrentMap<Integer, IBaseModel> mapThree = new ConcurrentHashMap<Integer, IBaseModel>();
-    protected Map<Integer, IBaseModel> rsyncMap = new HashMap<Integer, IBaseModel>();
+    private ConcurrentMap<Integer, IBaseModel> mapOne = new ConcurrentHashMap<>();
+    private ConcurrentMap<Integer, IBaseModel> mapTwo = new ConcurrentHashMap<>();
+    private ConcurrentMap<Integer, IBaseModel> mapThree = new ConcurrentHashMap<>();
+    protected Map<Integer, IBaseModel> rsyncMap = new HashMap<>();
 
 
     @Override
@@ -45,7 +45,7 @@ public abstract class BaseRsync implements IBaseRsync {
 
     @Override
     public Map<Integer, IBaseModel> getNeedRsync() {
-        return new HashMap<Integer, IBaseModel>(this.getNeedRsyncMap());
+        return new HashMap<>(this.getNeedRsyncMap());
     }
 
     @Override
@@ -86,8 +86,7 @@ public abstract class BaseRsync implements IBaseRsync {
      * @return
      */
     private int getSelect(long now) {
-        int select = (int) (Math.floor(now / RsyncManager.getSyncPeriod()) % 3);
-        return select;
+        return (int) (Math.floor(now / RsyncManager.getSyncPeriod()) % 3);
     }
 
     /**

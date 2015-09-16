@@ -3,7 +3,7 @@ package com.zhaidaosi.game.jgframework.model.entity;
 import com.zhaidaosi.game.jgframework.model.BasePosition;
 import com.zhaidaosi.game.jgframework.model.action.IBaseAction;
 import com.zhaidaosi.game.jgframework.model.area.IBaseArea;
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
 
 import java.util.HashMap;
 import java.util.Map;

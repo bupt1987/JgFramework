@@ -3,25 +3,25 @@ package com.zhaidaosi.game.jgframework.session;
 import com.zhaidaosi.game.jgframework.common.encrpt.BaseRsa;
 import com.zhaidaosi.game.jgframework.common.excption.BaseException;
 
-public class BaseSercretFactory implements IBaseSercretFactory {
+public class BaseSecretFactory implements IBaseSecretFactory {
 
     @Override
-    public String createSercret(int userId) throws BaseException {
+    public String createSecret(int userId) throws BaseException {
         String input = userId + "_" + System.currentTimeMillis();
-        String sercret = BaseRsa.encrypt(input);
-        if (sercret == null) {
+        String secret = BaseRsa.encrypt(input);
+        if (secret == null) {
             throw new BaseException("秘钥生成失败", 100);
         }
-        return sercret;
+        return secret;
     }
 
     @Override
-    public int checkSercret(String sercret) throws Exception {
-        sercret = BaseRsa.decrypt(sercret);
-        if (sercret == null) {
+    public int checkSecret(String secret) throws Exception {
+        secret = BaseRsa.decrypt(secret);
+        if (secret == null) {
             throw new BaseException("非法秘钥", 101);
         }
-        String[] arr = sercret.split("_");
+        String[] arr = secret.split("_");
         if (arr.length != 2) {
             throw new BaseException("非法秘钥", 101);
         }

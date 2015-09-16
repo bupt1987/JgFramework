@@ -6,24 +6,24 @@ import java.util.Map;
 
 public interface IBaseRsync {
 
-    public void addRsync(Integer id, IBaseModel obj);
+    void addRsync(Integer id, IBaseModel obj);
 
-    public void runRsync();
+    void runRsync();
 
-    public void setRsyncMap(Map<Integer, IBaseModel> map);
+    void setRsyncMap(Map<Integer, IBaseModel> map);
 
-    public void clearRsyncMap();
+    void clearRsyncMap();
 
-    public Map<Integer, IBaseModel> getNeedRsync();
+    Map<Integer, IBaseModel> getNeedRsync();
 
-    public IBaseModel get(Integer id);
+    IBaseModel get(Integer id);
 
-    public void clearNeedRsync();
+    void clearNeedRsync();
 
-    public boolean isRunning();
+    boolean isRunning();
 
-    public void toRunning();
+    void toRunning();
 
-    public void toStop();
+    void toStop();
 
 }

@@ -16,7 +16,7 @@ public class RsyncManager {
     private static long serviceSyncPeriod;
     private static final Logger log = LoggerFactory.getLogger(RsyncManager.class);
     private static HashMap<Class<?>, IBaseRsync> rsyncMap;
-    private static String classSuffix = "Rsync";
+    private static final String classSuffix = "Rsync";
 
     public static void init() {
         rsyncMap = new HashMap<Class<?>, IBaseRsync>();

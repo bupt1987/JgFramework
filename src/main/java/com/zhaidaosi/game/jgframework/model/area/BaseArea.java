@@ -6,8 +6,9 @@ import com.zhaidaosi.game.jgframework.model.entity.BasePlayer;
 import com.zhaidaosi.game.jgframework.model.entity.IBaseCharacter;
 import com.zhaidaosi.game.jgframework.model.entity.IBaseEntity;
 import com.zhaidaosi.game.jgframework.model.map.IBaseMap;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,47 +29,47 @@ public abstract class BaseArea implements IBaseArea {
     protected Map<Integer, IBaseEntity> npcs = new HashMap<>();
     protected Map<Integer, IBaseCharacter> players = new HashMap<>();
     protected ChannelGroup channelGroup;
-    protected Object lock = new Object();
+    protected final Object lock = new Object();
     protected BasePosition entrancePosition = new BasePosition(this);
 
     public BaseArea(String name) {
         this.id = hashCode();
         this.name = name;
-        this.channelGroup = new DefaultChannelGroup(name);
+        this.channelGroup = new DefaultChannelGroup(name, GlobalEventExecutor.INSTANCE);
     }
 
     public BaseArea(int id, String name) {
         this.id = id;
         this.name = name;
-        this.channelGroup = new DefaultChannelGroup(name);
+        this.channelGroup = new DefaultChannelGroup(name, GlobalEventExecutor.INSTANCE);
     }
 
     public BaseArea(String name, BasePosition entrancePosition) {
         this.id = hashCode();
         this.name = name;
         this.entrancePosition = entrancePosition;
-        this.channelGroup = new DefaultChannelGroup(name);
+        this.channelGroup = new DefaultChannelGroup(name, GlobalEventExecutor.INSTANCE);
     }
 
     public BaseArea(int id, String name, BasePosition entrancePosition) {
         this.id = id;
         this.name = name;
         this.entrancePosition = entrancePosition;
-        this.channelGroup = new DefaultChannelGroup(name);
+        this.channelGroup = new DefaultChannelGroup(name, GlobalEventExecutor.INSTANCE);
     }
 
     public BaseArea(String name, IBaseMap map) {
         this.id = hashCode();
         this.name = name;
         this.map = map;
-        this.channelGroup = new DefaultChannelGroup(name);
+        this.channelGroup = new DefaultChannelGroup(name, GlobalEventExecutor.INSTANCE);
     }
 
     public BaseArea(int id, String name, IBaseMap map) {
         this.id = id;
         this.name = name;
         this.map = map;
-        this.channelGroup = new DefaultChannelGroup(name);
+        this.channelGroup = new DefaultChannelGroup(name, GlobalEventExecutor.INSTANCE);
     }
 
     public BaseArea(String name, BasePosition entrancePosition, IBaseMap map) {
@@ -76,7 +77,7 @@ public abstract class BaseArea implements IBaseArea {
         this.name = name;
         this.map = map;
         this.entrancePosition = entrancePosition;
-        this.channelGroup = new DefaultChannelGroup(name);
+        this.channelGroup = new DefaultChannelGroup(name, GlobalEventExecutor.INSTANCE);
     }
 
     public BaseArea(int id, String name, BasePosition entrancePosition, IBaseMap map) {
@@ -84,7 +85,7 @@ public abstract class BaseArea implements IBaseArea {
         this.name = name;
         this.map = map;
         this.entrancePosition = entrancePosition;
-        this.channelGroup = new DefaultChannelGroup(name);
+        this.channelGroup = new DefaultChannelGroup(name, GlobalEventExecutor.INSTANCE);
     }
 
     @Override

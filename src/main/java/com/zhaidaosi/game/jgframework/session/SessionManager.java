@@ -4,11 +4,12 @@ import com.zhaidaosi.game.jgframework.Boot;
 import com.zhaidaosi.game.jgframework.Router;
 import com.zhaidaosi.game.jgframework.common.queue.BaseQueue;
 import com.zhaidaosi.game.jgframework.common.queue.BaseQueueElement;
+import com.zhaidaosi.game.jgframework.connector.IBaseConnector;
 import com.zhaidaosi.game.jgframework.message.IBaseMessage;
 import com.zhaidaosi.game.jgframework.message.InMessage;
 import com.zhaidaosi.game.jgframework.message.OutMessage;
 import com.zhaidaosi.game.jgframework.model.entity.IBaseCharacter;
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,31 +22,31 @@ import java.util.concurrent.ConcurrentMap;
 
 public class SessionManager {
 
-    public final static String SERCRET = "sercret";
+    public final static String SECRET = "secret";
     public final static int ADD_SESSION_SUCC = 1;
     public final static int ADD_SESSION_ERROR = -1;
     public final static int ADD_SESSION_WAIT = 0;
 
     private static final Logger log = LoggerFactory.getLogger(SessionManager.class);
-    private static IBaseSercretFactory sercretFactory = new BaseSercretFactory();
-    private static ConcurrentMap<Integer, Channel> userIdChannels = new ConcurrentHashMap<Integer, Channel>();
-    private static ConcurrentMap<Integer, BaseQueueElement<Channel>> waitUserIdChannels = new ConcurrentHashMap<Integer, BaseQueueElement<Channel>>();
-    private static BaseQueue<Channel> waitQueue = new BaseQueue<Channel>();
+    private static IBaseSecretFactory secretFactory = new BaseSecretFactory();
+    private static ConcurrentMap<Integer, Channel> userIdChannels = new ConcurrentHashMap<>();
+    private static ConcurrentMap<Integer, BaseQueueElement<Channel>> waitUserIdChannels = new ConcurrentHashMap<>();
+    private static BaseQueue<Channel> waitQueue = new BaseQueue<>();
     private static Timer timer;
     private static int maxUser = 0;
 
     public static int checkSession(InMessage msg, Channel ch) {
-        IBaseCharacter player = (IBaseCharacter) ch.getAttachment();
+        IBaseCharacter player = ch.attr(IBaseConnector.PLAYER).get();
         if (player == null) {
             return ADD_SESSION_ERROR;
         }
-        if (player != null && player.getId() <= 0) {
-            Object sercret = msg.getMember(SERCRET);
-            if (sercret == null || sercret.equals("")) {
+        if (player.getId() <= 0) {
+            Object secret = msg.getMember(SECRET);
+            if (secret == null || secret.equals("")) {
                 return ADD_SESSION_ERROR;
             }
             try {
-                int userId = checkSercret((String) sercret);
+                int userId = checkSecret((String) secret);
                 if (userId == 0) {
                     return ADD_SESSION_ERROR;
                 }
@@ -83,10 +84,10 @@ public class SessionManager {
             }
         }
 
-        boolean same = _ch == null ? false : _ch.getId().equals(ch.getId());
+        boolean same = _ch != null && _ch.hashCode() == ch.hashCode();
 
         if (_ch != null && !same) {
-            IBaseCharacter _player = (IBaseCharacter) _ch.getAttachment();
+            IBaseCharacter _player =  _ch.attr(IBaseConnector.PLAYER).get();
             if (_player != null) {
                 _player.setId(0);
                 // 保持排队名次
@@ -120,7 +121,7 @@ public class SessionManager {
     }
 
     public static void removeSession(Channel ch) {
-        IBaseCharacter player = (IBaseCharacter) ch.getAttachment();
+        IBaseCharacter player = ch.attr(IBaseConnector.PLAYER).get();
         if (player != null) {
             int userId = player.getId();
             if (maxUser > 0 && player.isInQueue()) {
@@ -141,7 +142,7 @@ public class SessionManager {
     public static List<IBaseCharacter> getOnlineUser() {
         List<IBaseCharacter> onlineUser = new ArrayList<IBaseCharacter>();
         for (Channel ch : userIdChannels.values()) {
-            IBaseCharacter player = (IBaseCharacter) ch.getAttachment();
+            IBaseCharacter player = ch.attr(IBaseConnector.PLAYER).get();
             if (player != null && player.getId() > 0) {
                 onlineUser.add(player);
             }
@@ -151,7 +152,7 @@ public class SessionManager {
 
     public static IBaseCharacter getPlayerByUserId(Integer uid) {
         Channel ch = userIdChannels.get(uid);
-        IBaseCharacter player = ch == null ? null : (IBaseCharacter) ch.getAttachment();
+        IBaseCharacter player = ch == null ? null : ch.attr(IBaseConnector.PLAYER).get();
         return (player != null && player.getId() > 0) ? player : null;
     }
 
@@ -165,12 +166,12 @@ public class SessionManager {
         return Boot.getServiceIps().get(index);
     }
 
-    public static String createSercret(int userId) throws Exception {
-        return sercretFactory.createSercret(userId);
+    public static String createSecret(int userId) throws Exception {
+        return secretFactory.createSecret(userId);
     }
 
-    private static int checkSercret(String sercret) throws Exception {
-        return sercretFactory.checkSercret(sercret);
+    private static int checkSecret(String secret) throws Exception {
+        return secretFactory.checkSecret(secret);
     }
 
     public static void init() {
@@ -203,8 +204,8 @@ public class SessionManager {
         return userIdChannels;
     }
 
-    public static void setSercretFactory(IBaseSercretFactory sercretFactory) {
-        SessionManager.sercretFactory = sercretFactory;
+    public static void setSercretFactory(IBaseSecretFactory secretFactory) {
+        SessionManager.secretFactory = secretFactory;
     }
 
     public static void setMaxUser(int max) {
@@ -242,7 +243,7 @@ public class SessionManager {
                     if (ch == null) {
                         continue;
                     }
-                    IBaseCharacter player = (IBaseCharacter) ch.getAttachment();
+                    IBaseCharacter player = ch.attr(IBaseConnector.PLAYER).get();
                     if (player == null) {
                         continue;
                     }
@@ -258,7 +259,7 @@ public class SessionManager {
                 BaseQueueElement<Channel> start = waitQueue.getStart();
                 while (start != null) {
                     Channel ch = start.getValue();
-                    IBaseCharacter player = (IBaseCharacter) ch.getAttachment();
+                    IBaseCharacter player = ch.attr(IBaseConnector.PLAYER).get();
                     ch.write(getWaitMessage(player));
                     start = start.getNext();
                 }

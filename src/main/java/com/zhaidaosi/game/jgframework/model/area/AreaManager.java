@@ -13,7 +13,7 @@ public class AreaManager {
 
     private static final Logger log = LoggerFactory.getLogger(AreaManager.class);
     private static Map<Integer, IBaseArea> areas = new HashMap<Integer, IBaseArea>();
-    private static String classSuffix = "Area";
+    private static final String classSuffix = "Area";
 
     public static void initArea(String packagePath) {
         if (packagePath == null) {
