@@ -10,7 +10,7 @@ public class BaseMd5 {
     /**
      * 进行MD5加密
      *
-     * @param String 原始的SPKEY
+     * @param text 原始的SPKEY
      * @return String 指定加密方式为md5后的String
      */
     public static String encrypt(String text) {

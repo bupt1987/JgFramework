@@ -67,7 +67,7 @@ public class BaseAvlTree<E extends Comparable<E>> extends AbstractSet<E> {
 
         public void remove() {
 
-            if (lastReturned.left != null && lastReturned != null)
+            if (lastReturned != null && lastReturned.left != null)
                 next = lastReturned;
             deleteEntry(lastReturned);
             lastReturned = null;
@@ -217,7 +217,7 @@ public class BaseAvlTree<E extends Comparable<E>> extends AbstractSet<E> {
      * 新增节点而变得不平衡了，需要重新调整平衡因子，这个分界点在调整平衡因子时非常有用
      *
      * @param elem 要新增元素的数据域
-     * @return
+     * @return boolean
      */
     public boolean add(E elem) {
         //如果树为空，则直接插入

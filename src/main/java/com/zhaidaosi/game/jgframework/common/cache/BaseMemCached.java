@@ -14,8 +14,8 @@ public class BaseMemCached extends MemCachedClient {
 
     // 设置与缓存服务器的连接池
     static {
-        String[] servers = null;
-        Integer[] weights = null;
+        String[] servers;
+        Integer[] weights;
         ArrayList<String> confServers = Boot.getMemcacheServers();
         KEYPREFIX = Boot.getMemcacheKeyPrefix();
         int size = confServers.size();
@@ -70,7 +70,6 @@ public class BaseMemCached extends MemCachedClient {
 
     /**
      * 获取唯一实例.
-     * @return
      */
     public static BaseMemCached getInstance() {
         return mc;

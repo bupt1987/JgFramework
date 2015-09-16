@@ -7,10 +7,7 @@ public class BaseString {
             return true;
         }
         str = str.trim();
-        if (str.equals("")) {
-            return true;
-        }
-        return false;
+        return str.equals("");
     }
 
 }

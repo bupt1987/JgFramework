@@ -28,8 +28,7 @@ public class BaseSocket {
 
     public static BaseSocket getNewInstance(String host, int port)
             throws UnknownHostException, IOException {
-        BaseSocket mySocket = new BaseSocket(host, port);
-        return mySocket;
+        return new BaseSocket(host, port);
     }
 
     public static BaseSocket getInstance(String host, int port)

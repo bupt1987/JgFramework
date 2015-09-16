@@ -7,15 +7,13 @@ public class BaseQueue<E> {
 
     private BaseQueueElement<E> start = null;
     private BaseQueueElement<E> end = null;
-    private Object lock = new Object();
+    private final Object lock = new Object();
     private long putCount = 0;
     private long takeCount = 0;
     private long size = 0;
 
     /**
      * 获取队列头
-     *
-     * @return
      */
     public BaseQueueElement<E> getStart() {
         return start;
@@ -23,9 +21,6 @@ public class BaseQueue<E> {
 
     /**
      * 从队列尾插入元素
-     *
-     * @param value
-     * @return
      */
     public BaseQueueElement<E> put(E value) {
         if (value == null) {
@@ -50,8 +45,6 @@ public class BaseQueue<E> {
 
     /**
      * 从队列头弹出元素
-     *
-     * @return
      */
     public BaseQueueElement<E> take() {
         if (start == null) {
@@ -78,8 +71,6 @@ public class BaseQueue<E> {
 
     /**
      * 删除一个元素
-     *
-     * @param element
      */
     public boolean remove(BaseQueueElement<E> element) {
         BaseQueueElement<E> after = null;
@@ -119,9 +110,6 @@ public class BaseQueue<E> {
 
     /**
      * 查找元素所在的位置
-     *
-     * @param element
-     * @return
      */
     public long findIndex(BaseQueueElement<E> element) {
         if (element == null) {
@@ -134,8 +122,6 @@ public class BaseQueue<E> {
 
     /**
      * 返回队列长度
-     *
-     * @return
      */
     public long size() {
         synchronized (lock) {

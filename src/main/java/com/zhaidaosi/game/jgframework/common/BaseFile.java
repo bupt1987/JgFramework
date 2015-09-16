@@ -23,10 +23,10 @@ public class BaseFile {
     /**
      * 从包package中获取所有的Class
      *
-     * @param pack
-     * @param recursive
-     *            是迭代
-     * @return
+     * @param pack String
+     * @param suffix String
+     * @param recursive 是迭代
+     * @return String
      */
     public static Set<Class<?>> getClasses(String pack, String suffix, boolean recursive) {
         // 第一个class类的集合

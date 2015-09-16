@@ -25,7 +25,7 @@ public class BaseGeneratePassword {
     /**
      * 生成密码
      * @param intPassLength 密码长度
-     * @return
+     * @return String
      */
     public static String doGenerate(final int intPassLength) {
         int intTemp;

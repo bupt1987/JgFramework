@@ -8,7 +8,7 @@ public class BaseIp {
     private static final Logger log = LoggerFactory.getLogger(BaseIp.class);
 
     public static Long[] stringToIp(String ips) {
-        Long[] longArr = null;
+        Long[] longArr;
         String[] ipArr = ips.split("-");
         if (ipArr.length == 2) {
             longArr = new Long[2];
