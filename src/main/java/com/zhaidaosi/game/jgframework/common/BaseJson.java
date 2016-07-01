@@ -1,6 +1,7 @@
 package com.zhaidaosi.game.jgframework.common;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,8 +14,7 @@ public class BaseJson {
     }
 
     public static String ObjectToJson(Object obj) {
-        return JSON.toJSONString(obj);
-
+        return JSON.toJSONString(obj, SerializerFeature.WriteNonStringKeyAsString, SerializerFeature.BrowserCompatible);
     }
 
 }
