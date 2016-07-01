@@ -24,6 +24,7 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpMethod.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
@@ -58,7 +59,7 @@ public class AuthConnector implements IBaseConnector {
             workerGroup = new NioEventLoopGroup();
         }
 
-        try{
+        try {
             bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childOption(ChannelOption.TCP_NODELAY, true)
@@ -71,11 +72,11 @@ public class AuthConnector implements IBaseConnector {
         }
     }
 
-    public void pause() {
+    void pause() {
         isPause = true;
     }
 
-    public void resume() {
+    void resume() {
         isPause = false;
     }
 
@@ -88,11 +89,11 @@ public class AuthConnector implements IBaseConnector {
         bossGroup.shutdownGracefully();
     }
 
-    class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
+    private class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
         @Override
         public void initChannel(SocketChannel ch) {
-            CorsConfig corsConfig = CorsConfig.anyOrigin().build();
+            CorsConfig corsConfig = CorsConfig.withAnyOrigin().build();
             ChannelPipeline p = ch.pipeline();
             p.addLast(new HttpResponseEncoder());
             p.addLast(new HttpRequestDecoder());
@@ -104,7 +105,7 @@ public class AuthConnector implements IBaseConnector {
 
     }
 
-    class HttpHandler extends ChannelInboundHandlerAdapter {
+    private class HttpHandler extends ChannelInboundHandlerAdapter {
 
         private InMessage inMsg;
 
@@ -144,7 +145,7 @@ public class AuthConnector implements IBaseConnector {
                 startTime = System.currentTimeMillis();
             }
 
-            if (msg instanceof HttpContent){
+            if (msg instanceof HttpContent) {
 
                 HttpContent httpContent = (HttpContent) msg;
                 ByteBuf content = httpContent.content();

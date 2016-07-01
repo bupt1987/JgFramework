@@ -10,6 +10,7 @@ import com.zhaidaosi.game.jgframework.rsync.RsyncManager;
 import com.zhaidaosi.game.jgframework.session.SessionManager;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -61,7 +62,7 @@ public class ServiceConnector implements IBaseConnector {
 
     private int heartbeatTime = Boot.getServiceHeartbeatTime();
 
-    public long getStartTime() {
+    long getStartTime() {
         return startTime;
     }
 
@@ -108,7 +109,12 @@ public class ServiceConnector implements IBaseConnector {
             timer = new Timer("SyncManagerTimer");
             timer.schedule(new MyTimerTask(), period, period);
             startTime = System.currentTimeMillis();
-            bootstrap.bind(localAddress);
+            bootstrap.option(ChannelOption.TCP_NODELAY, true)
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, AdaptiveRecvByteBufAllocator.DEFAULT)
+                    .option(ChannelOption.SO_RCVBUF, 128 * 1024)
+                    .option(ChannelOption.SO_SNDBUF, 128 * 1024)
+                    .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                    .bind(localAddress);
             log.info("Connect Service is running! port : " + localAddress.getPort());
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -129,7 +135,7 @@ public class ServiceConnector implements IBaseConnector {
         RsyncManager.run();
     }
 
-    class SocketServerInitializer extends ChannelInitializer<SocketChannel> {
+    private class SocketServerInitializer extends ChannelInitializer<SocketChannel> {
 
         @Override
         public void initChannel(SocketChannel ch) throws Exception {
@@ -146,7 +152,7 @@ public class ServiceConnector implements IBaseConnector {
 
     }
 
-    class WebSocketServerInitializer extends ChannelInitializer<SocketChannel> {
+    private class WebSocketServerInitializer extends ChannelInitializer<SocketChannel> {
 
         @Override
         public void initChannel(SocketChannel ch) throws Exception {
@@ -164,7 +170,7 @@ public class ServiceConnector implements IBaseConnector {
         }
     }
 
-    class MyTimerTask extends TimerTask {
+    private class MyTimerTask extends TimerTask {
         @Override
         public void run() {
             log.info("start sync ...");
@@ -172,7 +178,7 @@ public class ServiceConnector implements IBaseConnector {
         }
     }
 
-    class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
+    private class ServiceChannelHandler extends ChannelInboundHandlerAdapter {
 
         private WebSocketServerHandshaker handshake;
         private IBaseCharacter player;
@@ -254,13 +260,13 @@ public class ServiceConnector implements IBaseConnector {
             ctx.flush();
         }
 
-        private void handleWebSocketRequest(ChannelHandlerContext ctx, Object msg) throws Exception  {
+        private void handleWebSocketRequest(ChannelHandlerContext ctx, Object msg) throws Exception {
             InMessage inMsg = null;
             IBaseMessage rs = null;
             Channel ch = ctx.channel();
             if (msg instanceof WebSocketFrame) {
                 if (msg instanceof CloseWebSocketFrame) {
-                    handshake.close(ctx.channel(), (CloseWebSocketFrame) msg);
+                    handshake.close(ctx.channel(), ((CloseWebSocketFrame) msg).retain());
                     return;
                 }
                 if (msg instanceof PingWebSocketFrame) {
@@ -321,7 +327,7 @@ public class ServiceConnector implements IBaseConnector {
             }
         }
 
-        private void sendHttpResponse( ChannelHandlerContext ctx, FullHttpRequest req, FullHttpResponse res) {
+        private void sendHttpResponse(ChannelHandlerContext ctx, FullHttpRequest req, FullHttpResponse res) {
             // Generate an error page if response getStatus code is not OK (200).
             if (res.getStatus().code() != 200) {
                 ByteBuf buf = Unpooled.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8);

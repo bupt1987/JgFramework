@@ -2,6 +2,7 @@ package com.zhaidaosi.game.jgframework.message;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
+import io.netty.util.ReferenceCountUtil;
 
 import java.util.List;
 
@@ -13,7 +14,9 @@ public class MessageEncode extends MessageToMessageEncoder<Object> {
             return ;
         }
         if (msg instanceof IBaseMessage) {
-            msg = msg.toString() + "\r\n";
+            msg = msg.toString() + "\n";
+        } else {
+            ReferenceCountUtil.retain(msg);
         }
         out.add(msg);
     }
