@@ -233,7 +233,6 @@ public class ServiceConnector implements IBaseConnector {
             synchronized (lock) {
                 connectCount--;
             }
-            ctx.channel().attr(IBaseConnector.PLAYER).remove();
             BaseRunTimer.showTimer();
         }
 

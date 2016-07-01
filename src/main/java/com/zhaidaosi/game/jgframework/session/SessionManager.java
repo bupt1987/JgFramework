@@ -64,7 +64,6 @@ public class SessionManager {
 
     /**
      * 加入session
-     *
      * @param player
      * @param ch
      * @return
@@ -87,7 +86,7 @@ public class SessionManager {
         boolean same = _ch != null && _ch.hashCode() == ch.hashCode();
 
         if (_ch != null && !same) {
-            IBaseCharacter _player =  _ch.attr(IBaseConnector.PLAYER).get();
+            IBaseCharacter _player = _ch.attr(IBaseConnector.PLAYER).get();
             if (_player != null) {
                 _player.setId(0);
                 // 保持排队名次
@@ -254,13 +253,13 @@ public class SessionManager {
                     waitUserIdChannels.remove(userId);
                     player.setIsInQueue(false);
                     userIdChannels.put(userId, ch);
-                    ch.write(getWaitMessage(player));
+                    ch.writeAndFlush(getWaitMessage(player));
                 }
                 BaseQueueElement<Channel> start = waitQueue.getStart();
                 while (start != null) {
                     Channel ch = start.getValue();
                     IBaseCharacter player = ch.attr(IBaseConnector.PLAYER).get();
-                    ch.write(getWaitMessage(player));
+                    ch.writeAndFlush(getWaitMessage(player));
                     start = start.getNext();
                 }
             } catch (Exception e) {
