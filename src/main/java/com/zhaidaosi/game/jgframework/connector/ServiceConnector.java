@@ -41,6 +41,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 
 public class ServiceConnector implements IBaseConnector {
@@ -141,7 +142,7 @@ public class ServiceConnector implements IBaseConnector {
         public void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline pipeline = ch.pipeline();
             if (!Boot.getDebug()) {
-                pipeline.addLast(new IdleStateHandler(heartbeatTime, 0, 0));
+                pipeline.addLast(new IdleStateHandler(heartbeatTime * 2, 0, heartbeatTime, TimeUnit.SECONDS));
             }
             pipeline.addLast(new StringEncoder(Boot.getCharset()));
             pipeline.addLast(new StringDecoder(Boot.getCharset()));
@@ -158,7 +159,7 @@ public class ServiceConnector implements IBaseConnector {
         public void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline pipeline = ch.pipeline();
             if (!Boot.getDebug()) {
-                pipeline.addLast(new IdleStateHandler(heartbeatTime, 0, 0));
+                pipeline.addLast(new IdleStateHandler(heartbeatTime * 2, 0, heartbeatTime, TimeUnit.SECONDS));
             }
             pipeline.addLast(
                     new HttpResponseEncoder(),
@@ -201,19 +202,16 @@ public class ServiceConnector implements IBaseConnector {
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-            /*心跳处理*/
+           /*心跳处理*/
             if (evt instanceof IdleStateEvent) {
                 IdleStateEvent event = (IdleStateEvent) evt;
                 if (event.state() == IdleState.READER_IDLE) {
-                    /*读超时*/
-                    System.out.println("READER_IDLE 读超时");
+                    log.debug("close read time out connect => " + ctx.channel().remoteAddress());
                     ctx.disconnect();
                 } else if (event.state() == IdleState.WRITER_IDLE) {
-                    /*写超时*/
-                    System.out.println("WRITER_IDLE 写超时");
+                    log.debug("close write time out connect => " + ctx.channel().remoteAddress());
                 } else if (event.state() == IdleState.ALL_IDLE) {
-                    /*总超时*/
-                    System.out.println("ALL_IDLE 总超时");
+                    ctx.writeAndFlush(new PingWebSocketFrame());
                 }
             }
         }
@@ -234,6 +232,7 @@ public class ServiceConnector implements IBaseConnector {
             synchronized (lock) {
                 connectCount--;
             }
+            ctx.channel().attr(IBaseConnector.PLAYER).remove();
             BaseRunTimer.showTimer();
         }
 
@@ -273,6 +272,9 @@ public class ServiceConnector implements IBaseConnector {
                     ctx.write(new PongWebSocketFrame(((PingWebSocketFrame) msg).content().retain()));
                     return;
                 }
+                if (msg instanceof PongWebSocketFrame) {
+                    return;
+                }
                 if (!(msg instanceof TextWebSocketFrame)) {
                     throw new UnsupportedOperationException(String.format("%s msg types not supported", msg.getClass().getName()));
                 }
@@ -304,26 +306,30 @@ public class ServiceConnector implements IBaseConnector {
 
         private void handleHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
             // Handle a bad request.
-            if (!req.getDecoderResult().isSuccess()) {
-                sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
-                return;
-            }
-            if (req.getMethod() != GET) {
-                sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
-                return;
-            }
-            if (!WEB_SOCKET_PATH.equals(req.getUri())) {
-                sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
-                return;
-            }
-            // Handshake
-            WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                    getWebSocketLocation(req), null, true);
-            handshake = wsFactory.newHandshaker(req);
-            if (handshake == null) {
-                WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
-            } else {
-                handshake.handshake(ctx.channel(), req);
+            try {
+                if (!req.getDecoderResult().isSuccess()) {
+                    sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
+                    return;
+                }
+                if (req.getMethod() != GET) {
+                    sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
+                    return;
+                }
+                if (!WEB_SOCKET_PATH.equals(req.getUri())) {
+                    sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
+                    return;
+                }
+                // Handshake
+                WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
+                        getWebSocketLocation(req), null, true);
+                handshake = wsFactory.newHandshaker(req);
+                if (handshake == null) {
+                    WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+                } else {
+                    handshake.handshake(ctx.channel(), req);
+                }
+            } finally {
+                req.release();
             }
         }
 

@@ -25,10 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.*;
-import static io.netty.handler.codec.http.HttpMethod.*;
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
-import static io.netty.handler.codec.http.HttpVersion.*;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpMethod.POST;
+import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class AuthConnector implements IBaseConnector {
 
@@ -61,6 +63,7 @@ public class AuthConnector implements IBaseConnector {
 
         try {
             bootstrap.group(bossGroup, workerGroup)
+                    .option(ChannelOption.SO_BACKLOG, 1024)
                     .channel(NioServerSocketChannel.class)
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     .childOption(ChannelOption.SO_REUSEADDR, true)
@@ -121,11 +124,17 @@ public class AuthConnector implements IBaseConnector {
             String error = t.getMessage();
             log.error(error, t);
             sendHttpResponse(ctx, OutMessage.showError("系统错误:" + error, 10000).toString(), true);
+            ctx.close();
         }
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             BaseRunTimer.showTimer();
+        }
+
+        @Override
+        public void channelReadComplete(ChannelHandlerContext ctx) {
+            ctx.flush();
         }
 
         @Override
