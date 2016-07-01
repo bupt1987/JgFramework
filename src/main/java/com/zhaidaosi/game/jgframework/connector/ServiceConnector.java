@@ -34,6 +34,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.netty.handler.codec.http.HttpVersion.*;
 
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -242,10 +243,14 @@ public class ServiceConnector implements IBaseConnector {
             if (BaseRunTimer.isActive()) {
                 startTime = System.currentTimeMillis();
             }
-            if (msg instanceof FullHttpRequest) {
-                handleHttpRequest(ctx, (FullHttpRequest) msg);
-            } else {
-                handleWebSocketRequest(ctx, msg);
+            try {
+                if (msg instanceof FullHttpRequest) {
+                    handleHttpRequest(ctx, (FullHttpRequest) msg);
+                } else {
+                    handleWebSocketRequest(ctx, msg);
+                }
+            } finally {
+                ReferenceCountUtil.release(msg);
             }
             if (BaseRunTimer.isActive()) {
                 long runningTime = System.currentTimeMillis() - startTime;
@@ -306,30 +311,26 @@ public class ServiceConnector implements IBaseConnector {
 
         private void handleHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
             // Handle a bad request.
-            try {
-                if (!req.getDecoderResult().isSuccess()) {
-                    sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
-                    return;
-                }
-                if (req.getMethod() != GET) {
-                    sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
-                    return;
-                }
-                if (!WEB_SOCKET_PATH.equals(req.getUri())) {
-                    sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
-                    return;
-                }
-                // Handshake
-                WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                        getWebSocketLocation(req), null, true);
-                handshake = wsFactory.newHandshaker(req);
-                if (handshake == null) {
-                    WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
-                } else {
-                    handshake.handshake(ctx.channel(), req);
-                }
-            } finally {
-                req.release();
+            if (!req.getDecoderResult().isSuccess()) {
+                sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
+                return;
+            }
+            if (req.getMethod() != GET) {
+                sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
+                return;
+            }
+            if (!WEB_SOCKET_PATH.equals(req.getUri())) {
+                sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
+                return;
+            }
+            // Handshake
+            WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
+                    getWebSocketLocation(req), null, true);
+            handshake = wsFactory.newHandshaker(req);
+            if (handshake == null) {
+                WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+            } else {
+                handshake.handshake(ctx.channel(), req);
             }
         }
 
